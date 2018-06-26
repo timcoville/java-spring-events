@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -184,37 +185,38 @@ public class EventsController {
 		return "/editEvent.jsp";
 	}
 	
-	@PostMapping("/update/{id}")
-	public String updateEvent(@PathVariable("id")Long id, @ModelAttribute("event")Event event, @RequestParam("newEventDate")String eventDate, BindingResult result, HttpSession session, Model model) {
-		if (session.getAttribute("id") == null) {
-			return "redirect:/";
-		}
-		
+	@PutMapping("/edit/{id}")
+	public String updateEvent(@Valid @ModelAttribute("event")Event event, BindingResult result, @RequestParam("newEventDate")String eventDate, @PathVariable("id")Long id, HttpSession session, Model model) {
 		if (result.hasErrors()) {
+			Event record = eventService.findEvent(id);
 			Date date = new Date();
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
 			String tempDate = dateFormat.format(date);
+			String currDate = dateFormat.format(record.getEventDate());
 			model.addAttribute("date", tempDate);
+			model.addAttribute("currDate", currDate);
+			
+			System.out.println("ERROR ON PUT");
 			return "/editEvent.jsp";
+		} else {
+		
+			Event record = eventService.findEvent(id);
+			
+			try {
+				DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+				Date tempDate = format.parse(eventDate);
+				event.setEventDate(tempDate);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			
+			record.setName(event.getName());
+			record.setEventDate(event.getEventDate());
+			record.setCity(event.getCity());
+			record.setState(event.getState());
+			eventService.createEvent(record);
+			return "redirect:/events";
 		}
-		
-		Event record = eventService.findEvent(id);
-		
-		try {
-			DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-			Date tempDate = format.parse(eventDate);
-			event.setEventDate(tempDate);
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		
-		record.setName(event.getName());
-		record.setEventDate(event.getEventDate());
-		record.setCity(event.getCity());
-		record.setState(event.getState());
-		eventService.createEvent(record);
-		return "redirect:/events";
-		
 	}
 	
 	

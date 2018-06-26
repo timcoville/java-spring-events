@@ -9,17 +9,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.timcoville.beltreviewer.models.User;
 import com.timcoville.beltreviewer.services.UserService;
+import com.timcoville.beltreviewer.validators.UserValidator;
 
 @Controller
 public class LogRegController {
 	
 	private final UserService userService;
-	public LogRegController(UserService userService) {
+	private final UserValidator userValidator;
+	public LogRegController(UserService userService, UserValidator userValidator) {
 		this.userService = userService;
+		this.userValidator = userValidator;
 	}
 	
 	@RequestMapping("/")
@@ -28,26 +32,27 @@ public class LogRegController {
 	}
 	
 	@PostMapping("/login")
-	public String login(@Valid @ModelAttribute("user")User user, BindingResult result, HttpSession session, RedirectAttributes redirectAttributes){
-		if (result.hasErrors()) {
-			System.out.println("ERROR");
-			return "logReg.jsp";
+	public String login(@RequestParam("email") String email, @RequestParam("password") String password, HttpSession session, RedirectAttributes redirectAttributes){
+
+		Boolean auth = userService.authenticateUser(email, password);
+		if (auth) {
+			User record = userService.findByEmail(email);
+			session.setAttribute("id", record.getId());
+			return "redirect:/events";
 		} else {
-			Boolean auth = userService.authenticateUser(user.getEmail(), user.getPassword());
-			if (auth) {
-				User record = userService.findByEmail(user.getEmail());
-				session.setAttribute("id", record.getId());
-				return "redirect:/events";
-			} else {
-				redirectAttributes.addFlashAttribute("loginError", "Login Credentials Failed");
-				return "redirect:/";
-			}
+			redirectAttributes.addFlashAttribute("loginError", "Login Credentials Failed");
+			return "redirect:/";
 		}
+
 	}
 	
 	@PostMapping("/register")
 	public String register(@Valid @ModelAttribute("user")User user, BindingResult result, HttpSession session){
+		userValidator.validate(user, result);
 		if (result.hasErrors()) {
+			user.setEmail("");
+			user.setFirstName("");
+			user.setLastName("");
 			return "logReg.jsp";
 		} else {
 			User record = userService.registerUser(user);

@@ -17,6 +17,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name="events")
@@ -25,8 +26,10 @@ public class Event {
 	@Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
+	@Size(min=5, message="Name is required and needs to be longer than 4 characters")
 	private String name;
 	private Date eventDate;
+	@Size(min=5, message="City is required and needs to be longer than 4 characters")
 	private String city;
 	private String state;
 	

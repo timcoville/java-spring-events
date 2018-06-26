@@ -1,7 +1,9 @@
+<%@ page isErrorPage="true" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>   
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%> 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,9 +20,9 @@
 	<br>
 	<br>
 	
-	
-		<form:form action="/update/${event.id}" method="post" modelAttribute="event">
-				
+		<p><form:errors path="event.*"/></p>
+		<form:form action="/edit/${event.id}" method="post" modelAttribute="event">
+				<input type="hidden" name="_method" value="put">
 				<span class="row">
 					<form:label path="name">Name:</form:label>
 					<form:input path="name"/>
@@ -44,7 +46,7 @@
 				<span class="row">
 					<input type="submit" class="right"  value="Update"/>
 				</span>
-				<p><form:errors path="event.*"/></p>	
+					
 			</form:form>
 	</div>
 	</div>
